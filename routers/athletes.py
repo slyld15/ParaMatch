@@ -7,19 +7,23 @@ router = APIRouter(prefix="/athletes", tags=["athletes"])
 
 @router.post("", response_model=Athlete)
 def create_athlete(body: AthleteCreate):
-    athlete = Athlete(id=storage.next_athlete_id(), **body.model_dump())
-    storage.athletes_db[athlete.id] = athlete
-    return athlete
+    return storage.create_athlete(
+        name=body.name,
+        category=body.category,
+        height_cm=body.height_cm,
+        arm_length_cm=body.arm_length_cm,
+        functional_arms=body.functional_arms,
+    )
 
 
 @router.get("", response_model=list[Athlete])
 def list_athletes():
-    return list(storage.athletes_db.values())
+    return storage.list_athletes()
 
 
 @router.get("/{athlete_id}", response_model=Athlete)
 def get_athlete(athlete_id: int):
-    athlete = storage.athletes_db.get(athlete_id)
+    athlete = storage.get_athlete(athlete_id)
     if not athlete:
         raise HTTPException(status_code=404, detail="Athlete not found")
     return athlete
@@ -27,14 +31,6 @@ def get_athlete(athlete_id: int):
 
 @router.get("/{athlete_id}/matches", response_model=list[Match])
 def get_athlete_matches(athlete_id: int):
-    if athlete_id not in storage.athletes_db:
+    if not storage.get_athlete(athlete_id):
         raise HTTPException(status_code=404, detail="Athlete not found")
-
-    result = []
-    for match in storage.matches_db.values():
-        tournament = storage.tournaments_db.get(match.tournament_id)
-        if not tournament or not tournament.published:
-            continue
-        if match.athlete_a_id == athlete_id or match.athlete_b_id == athlete_id:
-            result.append(match)
-    return result
+    return storage.get_published_matches_by_athlete(athlete_id)
