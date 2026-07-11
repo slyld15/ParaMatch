@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers import athletes, tournaments, auth
+from db import init_db
 
 app = FastAPI(title="ParaMatch API")
 
@@ -15,6 +16,8 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(athletes.router)
 app.include_router(tournaments.router)
+
+init_db()
 
 
 @app.get("/")
