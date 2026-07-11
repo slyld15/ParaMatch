@@ -8,6 +8,11 @@ class TournamentType(str, Enum):
     OLYMPIC = "OLYMPIC"
 
 
+class UserRole(str, Enum):
+    ATHLETE = "ATHLETE"
+    ORGANIZATION = "ORGANIZATION"
+
+
 class Athlete(BaseModel):
     id: int
     name: str
@@ -59,3 +64,41 @@ class Match(BaseModel):
 
 class MatchResult(BaseModel):
     winner_id: int
+
+
+class User(BaseModel):
+    id: int
+    email: str
+    password: str
+    role: UserRole
+    athlete_id: Optional[int] = None
+    org_name: Optional[str] = None
+
+
+class RegisterAthleteRequest(BaseModel):
+    email: str
+    password: str
+    name: str
+    category: str
+    height_cm: int
+    arm_length_cm: int
+    functional_arms: int
+
+
+class RegisterOrganizationRequest(BaseModel):
+    email: str
+    password: str
+    org_name: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    token: Optional[str] = None
+    user_id: int
+    role: UserRole
+    athlete_id: Optional[int] = None
+    org_name: Optional[str] = None
