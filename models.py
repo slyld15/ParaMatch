@@ -5,7 +5,7 @@ from enum import Enum
 
 class TournamentType(str, Enum):
     OPEN = "OPEN"
-    OLYMPIC = "OLYMPIC"
+    INVITATIONAL = "INVITATIONAL"
 
 
 class UserRole(str, Enum):
