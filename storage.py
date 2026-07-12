@@ -23,6 +23,8 @@ def _tournament_from_row(row: TournamentRow) -> Tournament:
         name=row.name,
         type=TournamentType(type_value),
         description=row.description,
+        date=row.date or "",
+        location=row.location or "",
         athlete_ids=ids,
         published=row.published,
         current_round=row.current_round,
@@ -87,10 +89,14 @@ def list_athletes() -> list[Athlete]:
         db.close()
 
 
-def create_tournament(name: str, type: TournamentType, description: str | None) -> Tournament:
+def create_tournament(name: str, type: TournamentType, description: str | None, date: str, location: str) -> Tournament:
     db = SessionLocal()
     try:
-        row = TournamentRow(name=name, type=type.value, description=description, athlete_ids="", published=False, current_round=1)
+        row = TournamentRow(
+            name=name, type=type.value, description=description,
+            date=date, location=location,
+            athlete_ids="", published=False, current_round=1,
+        )
         db.add(row)
         db.commit()
         db.refresh(row)
@@ -161,6 +167,20 @@ def set_tournament_state(tournament_id: int, published: bool | None = None, curr
         db.commit()
         db.refresh(row)
         return _tournament_from_row(row)
+    finally:
+        db.close()
+
+
+def delete_tournament(tournament_id: int) -> bool:
+    db = SessionLocal()
+    try:
+        row = db.get(TournamentRow, tournament_id)
+        if not row:
+            return False
+        db.query(MatchRow).filter(MatchRow.tournament_id == tournament_id).delete()
+        db.delete(row)
+        db.commit()
+        return True
     finally:
         db.close()
 
