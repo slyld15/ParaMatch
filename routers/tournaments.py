@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from models import (
     Tournament, TournamentCreate, TournamentType,
-    AddAthletesRequest, Match, MatchResult,
+    AddAthletesRequest, Match, MatchResult, User, UserRole,
 )
 from matching import generate_fair_pairs, pad_to_power_of_two, generate_next_round
+from routers.auth import get_current_user
 import storage
 
 router = APIRouter(prefix="/tournaments", tags=["tournaments"])
@@ -64,6 +65,24 @@ def add_athletes(tournament_id: int, body: AddAthletesRequest):
     return storage.set_tournament_athletes(tournament_id, body.athlete_ids)
 
 
+@router.post("/{tournament_id}/join", response_model=Tournament)
+def join_tournament(tournament_id: int, current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ATHLETE or not current_user.athlete_id:
+        raise HTTPException(status_code=403, detail="Only athletes can join tournaments")
+
+    t = storage.get_tournament(tournament_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    if t.type != TournamentType.OPEN:
+        raise HTTPException(status_code=400, detail="Only OPEN tournaments can be joined directly")
+    if t.published:
+        raise HTTPException(status_code=400, detail="This tournament has already been published")
+    if current_user.athlete_id in t.athlete_ids:
+        raise HTTPException(status_code=400, detail="You already joined this tournament")
+
+    return storage.add_athlete_to_tournament(tournament_id, current_user.athlete_id)
+
+
 @router.post("/{tournament_id}/generate-matches", response_model=list[Match])
 def generate_matches(tournament_id: int):
     t = storage.get_tournament(tournament_id)
@@ -104,8 +123,8 @@ def submit_result(tournament_id: int, match_id: int, body: MatchResult):
     match = storage.get_match(match_id)
     if not t or not match or match.tournament_id != tournament_id:
         raise HTTPException(status_code=404, detail="Tournament or match not found")
-    if t.type != TournamentType.OLYMPIC:
-        raise HTTPException(status_code=400, detail="Submitting results is only valid for OLYMPIC tournaments")
+    if t.type != TournamentType.INVITATIONAL:
+        raise HTTPException(status_code=400, detail="Submitting results is only valid for INVITATIONAL tournaments")
     if body.winner_id not in (match.athlete_a_id, match.athlete_b_id):
         raise HTTPException(status_code=400, detail="Winner must be one of the athletes in this match")
 
