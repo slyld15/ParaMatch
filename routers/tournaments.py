@@ -34,7 +34,13 @@ def _save_pairs_as_matches(tournament_id: int, round_no: int, pairs: list[dict])
 
 @router.post("", response_model=Tournament)
 def create_tournament(body: TournamentCreate):
-    return storage.create_tournament(name=body.name, type=body.type, description=body.description)
+    return storage.create_tournament(
+        name=body.name,
+        type=body.type,
+        description=body.description,
+        date=body.date,
+        location=body.location,
+    )
 
 
 @router.get("", response_model=list[Tournament])
@@ -50,6 +56,14 @@ def get_tournament(tournament_id: int):
     return t
 
 
+@router.delete("/{tournament_id}")
+def delete_tournament(tournament_id: int):
+    deleted = storage.delete_tournament(tournament_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return {"deleted": True}
+
+
 @router.get("/{tournament_id}/matches", response_model=list[Match])
 def get_tournament_matches(tournament_id: int):
     return storage.get_matches_by_tournament(tournament_id)
@@ -57,8 +71,14 @@ def get_tournament_matches(tournament_id: int):
 
 @router.post("/{tournament_id}/athletes", response_model=Tournament)
 def add_athletes(tournament_id: int, body: AddAthletesRequest):
-    if not storage.get_tournament(tournament_id):
+    t = storage.get_tournament(tournament_id)
+    if not t:
         raise HTTPException(status_code=404, detail="Tournament not found")
+    if t.type == TournamentType.OPEN:
+        raise HTTPException(
+            status_code=400,
+            detail="Athletes cannot be added manually to OPEN tournaments, they must join themselves via /join",
+        )
     for aid in body.athlete_ids:
         if not storage.get_athlete(aid):
             raise HTTPException(status_code=400, detail=f"Athlete {aid} does not exist")
