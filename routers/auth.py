@@ -34,6 +34,7 @@ def register_athlete(body: RegisterAthleteRequest):
         height_cm=body.height_cm,
         arm_length_cm=body.arm_length_cm,
         functional_arms=body.functional_arms,
+        club=body.club,
     )
 
     user = storage.create_user(
