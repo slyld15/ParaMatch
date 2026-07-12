@@ -21,6 +21,7 @@ class AthleteRow(Base):
     height_cm = Column(Integer, nullable=False)
     arm_length_cm = Column(Integer, nullable=False)
     functional_arms = Column(Integer, nullable=False)
+    club = Column(String, nullable=True)
 
 
 class TournamentRow(Base):
