@@ -3,7 +3,7 @@ from models import (
     Tournament, TournamentCreate, TournamentType,
     AddAthletesRequest, Match, MatchResult, User, UserRole,
 )
-from matching import generate_fair_pairs, pad_to_power_of_two, generate_next_round
+from matching import generate_fair_pairs, generate_next_round, group_by_category
 from routers.auth import get_current_user
 import storage
 
@@ -93,15 +93,14 @@ def generate_matches(tournament_id: int):
 
     chosen = [storage.get_athlete(aid) for aid in t.athlete_ids]
 
-    if t.type == TournamentType.OPEN:
-        pairs = generate_fair_pairs(chosen)
-    else:
-        padded = pad_to_power_of_two(chosen)
-        real_athletes = [a for a in padded if a is not None]
-        bay_count = len(padded) - len(real_athletes)
-        pairs = generate_fair_pairs(real_athletes)
-        for _ in range(bay_count):
-            pairs.append({"a": pairs.pop()["a"], "b": None, "score": None}) if pairs else None
+    for category, group in group_by_category(chosen).items():
+        if len(group) < 2:
+            raise HTTPException(
+                status_code=400,
+                detail=f"'{category}' category needs at least 2 athletes to be matched, currently has {len(group)}",
+            )
+
+    pairs = generate_fair_pairs(chosen)
 
     storage.set_tournament_state(tournament_id, published=False, current_round=1)
     storage.delete_matches_by_tournament(tournament_id)
