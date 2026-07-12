@@ -20,6 +20,7 @@ class Athlete(BaseModel):
     height_cm: int
     arm_length_cm: int
     functional_arms: int
+    club: Optional[str] = None
 
 
 class AthleteCreate(BaseModel):
@@ -28,6 +29,7 @@ class AthleteCreate(BaseModel):
     height_cm: int
     arm_length_cm: int
     functional_arms: int
+    club: Optional[str] = None
 
 
 class Tournament(BaseModel):
@@ -87,6 +89,7 @@ class RegisterAthleteRequest(BaseModel):
     height_cm: int
     arm_length_cm: int
     functional_arms: int
+    club: Optional[str] = None
 
 
 class RegisterOrganizationRequest(BaseModel):
