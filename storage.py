@@ -12,6 +12,7 @@ def _athlete_from_row(row: AthleteRow) -> Athlete:
         height_cm=row.height_cm,
         arm_length_cm=row.arm_length_cm,
         functional_arms=row.functional_arms,
+        club=row.club,
     )
 
 
@@ -56,12 +57,12 @@ def _user_from_row(row: UserRow) -> User:
     )
 
 
-def create_athlete(name: str, category: str, height_cm: int, arm_length_cm: int, functional_arms: int) -> Athlete:
+def create_athlete(name: str, category: str, height_cm: int, arm_length_cm: int, functional_arms: int, club: str | None = None) -> Athlete:
     db = SessionLocal()
     try:
         row = AthleteRow(
             name=name, category=category, height_cm=height_cm,
-            arm_length_cm=arm_length_cm, functional_arms=functional_arms,
+            arm_length_cm=arm_length_cm, functional_arms=functional_arms, club=club,
         )
         db.add(row)
         db.commit()
