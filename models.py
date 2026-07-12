@@ -35,6 +35,8 @@ class Tournament(BaseModel):
     name: str
     type: TournamentType
     description: Optional[str] = None
+    date: str
+    location: str
     athlete_ids: list[int] = []
     published: bool = False
     current_round: int = 1
@@ -44,6 +46,8 @@ class TournamentCreate(BaseModel):
     name: str
     type: TournamentType
     description: Optional[str] = None
+    date: str
+    location: str
 
 
 class AddAthletesRequest(BaseModel):
