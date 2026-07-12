@@ -130,6 +130,23 @@ def set_tournament_athletes(tournament_id: int, athlete_ids: list[int]) -> Tourn
         db.close()
 
 
+def add_athlete_to_tournament(tournament_id: int, athlete_id: int) -> Tournament | None:
+    db = SessionLocal()
+    try:
+        row = db.get(TournamentRow, tournament_id)
+        if not row:
+            return None
+        ids = [int(x) for x in row.athlete_ids.split(",") if x]
+        if athlete_id not in ids:
+            ids.append(athlete_id)
+        row.athlete_ids = ",".join(str(x) for x in ids)
+        db.commit()
+        db.refresh(row)
+        return _tournament_from_row(row)
+    finally:
+        db.close()
+
+
 def set_tournament_state(tournament_id: int, published: bool | None = None, current_round: int | None = None) -> Tournament | None:
     db = SessionLocal()
     try:
