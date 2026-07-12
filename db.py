@@ -29,6 +29,8 @@ class TournamentRow(Base):
     name = Column(String, nullable=False)
     type = Column(String, nullable=False)
     description = Column(String, nullable=True)
+    date = Column(String, nullable=True)
+    location = Column(String, nullable=True)
     athlete_ids = Column(Text, nullable=False, default="")
     published = Column(Boolean, nullable=False, default=False)
     current_round = Column(Integer, nullable=False, default=1)
