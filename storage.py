@@ -17,10 +17,11 @@ def _athlete_from_row(row: AthleteRow) -> Athlete:
 
 def _tournament_from_row(row: TournamentRow) -> Tournament:
     ids = [int(x) for x in row.athlete_ids.split(",") if x]
+    type_value = "INVITATIONAL" if row.type == "OLYMPIC" else row.type
     return Tournament(
         id=row.id,
         name=row.name,
-        type=TournamentType(row.type),
+        type=TournamentType(type_value),
         description=row.description,
         athlete_ids=ids,
         published=row.published,
